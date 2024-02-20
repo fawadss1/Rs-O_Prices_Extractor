@@ -1,8 +1,24 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from bs4 import BeautifulSoup
+from os import remove
 import requests
 import json
 import csv
+
+
+def combine_and_delete_files(file_count):
+    combined_filename = "Csv_Data/Combined_Updated_MPN.csv"
+    with open(combined_filename, "w", newline="", encoding='utf-8') as outfile:
+        writer = csv.writer(outfile)
+        writer.writerow(["MPN", "Price"])  # Write header once
+        for index in range(file_count):
+            filename = f"Csv_Data/Updated_MPN_{index}.csv"
+            with open(filename, "r", encoding='utf-8') as infile:
+                reader = csv.reader(infile)
+                next(reader)  # Skip header
+                for row in reader:
+                    writer.writerow(row)
+            remove(filename)  # Delete file after its contents have been appended
 
 
 def fetch_price(session, number):
@@ -27,7 +43,7 @@ def fetch_price(session, number):
 
 def update_prices_segment(numbers, index):
     session = requests.Session()
-    output_filename = f"data/Updated_MPN_{index}.csv"
+    output_filename = f"Csv_Data/Updated_MPN_{index}.csv"
     with open(output_filename, "w", newline="", encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["MPN", "Price"])
@@ -39,7 +55,7 @@ def update_prices_segment(numbers, index):
 
 
 def read_mpn_list():
-    with open("MPN.csv", "r", encoding='utf-8-sig') as csvfile:
+    with open("Csv_Data/MPN.csv", "r", encoding='utf-8-sig') as csvfile:
         reader = csv.reader(csvfile)
         numbers = [row[0].strip("[]'") for row in reader]
     return numbers
@@ -59,6 +75,8 @@ def main():
         futures = [executor.submit(update_prices_segment, chunk, index) for index, chunk in enumerate(numbers_chunks)]
         for future in as_completed(futures):
             print(f"Task completed: {future.result()}")
+
+    combine_and_delete_files(len(numbers_chunks))
 
 
 if __name__ == "__main__":
