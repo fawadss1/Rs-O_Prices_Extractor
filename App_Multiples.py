@@ -49,7 +49,7 @@ def update_prices_segment(numbers, index):
         writer.writerow(["MPN", "Price"])
         for number in numbers:
             price = fetch_price(session, number)
-            writer.writerow([number, f'£{price}'])
+            writer.writerow([number, price])
             print(f'{number} -> {price}')
     session.close()
 
