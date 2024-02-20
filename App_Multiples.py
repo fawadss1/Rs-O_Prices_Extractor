@@ -8,17 +8,17 @@ import csv
 
 def combine_and_delete_files(file_count):
     combined_filename = "Csv_Data/Combined_Updated_MPN.csv"
-    with open(combined_filename, "w", newline="", encoding='utf-8') as outfile:
+    with open(combined_filename, "w", newline="", encoding='utf-8-sig') as outfile:
         writer = csv.writer(outfile)
-        writer.writerow(["MPN", "Price"])  # Write header once
+        writer.writerow(["MPN", "Price"])
         for index in range(file_count):
             filename = f"Csv_Data/Updated_MPN_{index}.csv"
-            with open(filename, "r", encoding='utf-8') as infile:
+            with open(filename, "r", encoding='utf-8-sig') as infile:
                 reader = csv.reader(infile)
                 next(reader)  # Skip header
                 for row in reader:
                     writer.writerow(row)
-            remove(filename)  # Delete file after its contents have been appended
+            remove(filename)
 
 
 def fetch_price(session, number):
@@ -32,7 +32,7 @@ def fetch_price(session, number):
             dataJson = json.loads(script.text)
             element = dataJson['props']['pageProps']['articleResult']['data']['article']
             price = element['priceBreaks'][0]['price']
-            return price
+            return "%.2f" % float(price)
         else:
             print(f"Script not found for {number}.")
             return "N/A"
@@ -44,12 +44,12 @@ def fetch_price(session, number):
 def update_prices_segment(numbers, index):
     session = requests.Session()
     output_filename = f"Csv_Data/Updated_MPN_{index}.csv"
-    with open(output_filename, "w", newline="", encoding='utf-8') as csvfile:
+    with open(output_filename, "w", newline="", encoding='utf-8-sig') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["MPN", "Price"])
         for number in numbers:
             price = fetch_price(session, number)
-            writer.writerow([number, f'£ {price}'])
+            writer.writerow([number, f'£{price}'])
             print(f'{number} -> {price}')
     session.close()
 
